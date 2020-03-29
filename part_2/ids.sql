@@ -62,14 +62,15 @@ create table borrow
     borrow_id int generated as identity
         constraint borrow_pk
             primary key,
+    title_id int not null,
     copy_id int not null,
     borrow_date date not null,
     return_date date,
     price float,
     customer_id int not null, --borrowed title
     employee_id int not null, -- checked it out
-    constraint copy_id_fk
-        foreign key (copy_id) references copy(copy_id),
+    constraint title_copy_id_fk
+        foreign key (title_id, copy_id) references copy(title_id, copy_id),
     constraint customer_id_fk
         foreign key (customer_id) references person(person_id),
     constraint employee_id_fk
@@ -91,10 +92,11 @@ values ('romance');
 insert into genre (name)
 values ('thriller');
 
-INSERT INTO title (name, year, genre, price_per_day)
-VALUES ('Vecny pribeh', 1980, 'romance', 50);
-INSERT INTO title (name, year, genre, price_per_day)
-VALUES ('Vecny pribeh', 1990, 'thriller', 50);
+insert into title (name, year, genre, price_per_day)
+values ('Vecny pribeh', 1980, 'romance', 50);
+insert into title (name, year, genre, price_per_day)
+values ('Vecny pribeh', 1990, 'thriller', 50);
+
 insert into copy (title_id)
 values(1);
 
@@ -103,6 +105,8 @@ values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000, 1, 0);
 insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
 values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110, 0, 1);
 
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(1,1, TO_DATE('17/12/2020', 'DD/MM/YYYY'), NULL, NULL, 1, 1);
 
 -- kontroni vypisy, TODO vymazat
 SELECT * from title;
