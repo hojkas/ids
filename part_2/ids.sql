@@ -88,25 +88,115 @@ create table borrow
 -- naplneni tabulek vzorovymi daty
 
 insert into genre (name)
-values ('romance');
+values ('comedy');
 insert into genre (name)
-values ('thriller');
+values ('sci-fi');
+insert into genre(name)
+values('horror')
+insert into genre(name)
+values('romance');
+insert into genre(name)
+values('action');
+insert into genre(name)
+values('thriller');
+insert into genre(name)
+values('drama');
+insert into genre(name)
+values('mystery');
+insert into genre(name)
+values('crime');
+insert into genre(name)
+values('animation');
+insert into genre(name)
+values('fantasy');
 
 insert into title (name, year, genre, price_per_day)
-values ('Vecny pribeh', 1980, 'romance', 50);
+values ('Life of Brian', 1979, 'comedy', 25);
 insert into title (name, year, genre, price_per_day)
-values ('Vecny pribeh', 1990, 'thriller', 50);
+values ('Martian', 2015, 'sci-fi', 45);
+insert into title (name, year, genre, price_per_day)
+values ('Saw 2', 2005, 'horror', 35);
+insert into title (name, year, genre, price_per_day)
+values ('Bridget Jones Diary', 2001, 'romance', 30);
+insert into title (name, year, genre, price_per_day)
+values ('Avengers: End Game', 2019, 'action', 50);
+insert into title (name, year, genre, price_per_day)
+values ('Quantum of Solace', 2008, 'action', 35);
+insert into title (name, year, genre, price_per_day)
+values ('Train to Busan', 2016, 'thriller', 50);
+insert into title (name, year, genre, price_per_day)
+values ('Parasite', 2019, 'drama', 50);
+insert into title (name, year, genre, price_per_day)
+values ('Se7en', 1995, 'mystery', 25);
+insert into title (name, year, genre, price_per_day)
+values ('The Godfather', 1972, 'crime', 25);
+insert into title (name, year, genre, price_per_day)
+values ('Spirited Away', 2001, 'animation', 30);
+insert into title (name, year, genre, price_per_day)
+values ('Lord of the Rings: Return of the King', 2003, 'fantasy', 30);
 
 insert into copy (title_id)
 values(1);
+insert into copy (title_id)
+values(1);
+insert into copy (title_id)
+values(2);
+insert into copy (title_id)
+values(4);
+insert into copy (title_id)
+values(5);
+insert into copy (title_id)
+values(6);
+insert into copy (title_id)
+values(7);
+insert into copy (title_id)
+values(8);
+insert into copy (title_id)
+values(9);
+insert into copy (title_id)
+values(10);
+insert into copy (title_id)
+values(11);
+insert into copy (title_id)
+values(12);
 
 insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
-values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000, 1, 0);
+values ('Denis', 'Bradaty', 88, 'Cezarova', 'Nove Zamky', 94002, 1, 0);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Iveta', 'Botova', 69, 'Purkynova', 'Brno', 58000, 1, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Vojta', 'Novy', 69, 'Nerudova', 'Brno', 58000, 1, 0);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000, 0, 1);
 insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
 values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Karel', 'Krajci', 75, 'Purkynova', 'Brno', 58000, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Jan', 'Novak', 240, 'Brnenska', 'Boskovice', 54110, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Norbert', 'Madar', 26, 'Lipova', 'Nove Zamky', 94002, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Filip', 'Dreper', 32, 'Francouzska', 'Ostrava', 70030, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Mazenka', 'Tmava', 42, 'Tmava', 'Brno', 58000, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Vojta', 'Stary', 2, 'Korunova', 'Kyjov', 69655, 0, 1);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Eva', 'Novotna', 85, 'Rybova', 'Praha', 10000, 0, 1);
 
 insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
-values(1,1, TO_DATE('17/12/2020', 'DD/MM/YYYY'), NULL, NULL, 1, 1);
+values(1,1, TO_DATE('17/12/2020', 'DD/MM/YYYY'), NULL, NULL, 4, 1);
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(1,2, TO_DATE('15/12/2020', 'DD/MM/YYYY'), TO_DATE('16/12/2020', 'DD/MM/YYYY'), 25, 9, 2);
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(1,2, TO_DATE('16/12/2020', 'DD/MM/YYYY'), TO_DATE('18/12/2020', 'DD/MM/YYYY'), 50, 8, 2);
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(9,9, TO_DATE('15/12/2020', 'DD/MM/YYYY'), TO_DATE('18/12/2020', 'DD/MM/YYYY'),75, 10, 3);
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/YYYY'),  30, 3, 2);
+
+
 
 -- kontroni vypisy, TODO vymazat
 SELECT * from title;
