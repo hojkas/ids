@@ -40,36 +40,24 @@ create table copy
 );
 create table person
 (
-    person_id int generated as identity
-        constraint person_pk
-            primary key,
-    first_name varchar(50) not null,
-    last_name varchar(50) not null,
-    house_number int not null,
-    street varchar(50) not null,
-    town varchar(50) not null,
-    zip_code int not null,
-    constraint zip_check
-        check(regexp_like(zip_code, '^\d{5}$'))
+	person_id int generated as identity
+		constraint person_pk
+			primary key,
+	first_name varchar(50) not null,
+	last_name varchar(50) not null,
+	house_number int not null,
+	street varchar(50) not null,
+	town varchar(50) not null,
+	zip_code int not null,
+	is_employee number default 0,
+	is_customer number default 0,
+	constraint zip_check
+		check (regexp_like(zip_code, '^\d{5}$')),
+	constraint person_is_something
+        check (is_customer = 1 OR is_employee = 1),
+
 );
-create table customer
-(
-    customer_id int generated as identity
-        constraint customer_pk
-            primary key,
-    person_id not null,
-    constraint customer_person_fk
-        foreign key (person_id) references person(person_id)
-)
-create table employee
-(
-    employee_id int generated as identity
-        constraint employee_pk
-            primary key,
-    person_id not null,
-    constraint employee_person_fk
-        foreign key (person_id) references person(person_id)
-)
+
 create table borrow
 (
     borrow_id int generated as identity
@@ -81,13 +69,14 @@ create table borrow
     customer_id int not null, --borrowed title
     employee_id int not null, -- checked it out
     constraint customer_id_fk
-        foreign key (customer_id) references customer(customer_id),
+        foreign key (customer_id) references person(person_id),
     constraint employee_id_fk
-        foreign key (employee_id) references employee(employee_id)
+        foreign key (employee_id) references person(person_id)
     --TODO constraint user is user and empl is empl
 );
 
 -- dodatecna omezeni
+
 
 
 -- INSERT
@@ -105,26 +94,15 @@ VALUES ('Vecny pribeh', 1990, 'thriller', 50);
 insert into copy (title_id)
 values(1);
 
-insert into person(first_name, last_name, house_number, street, town, zip_code)
-values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000);
-insert into customer(person_id)
-values(1);
-insert into person(first_name, last_name, house_number, street, town, zip_code)
-values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110);
-insert into employee(person_id)
-values(2);
-insert into person(first_name, last_name, house_number, street, town, zip_code)
-values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110);
-insert into employee(person_id)
-values(3);
-insert into customer(person_id)
-values(3);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000, 1, 0);
+insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
+values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110, 0, 0);
+
 
 -- kontroni vypisy, TODO vymazat
 SELECT * from title;
 SELECT * from copy;
 SELECT * from genre;
 SELECT * from person;
-SELECT * from employee;
-SELECT * from customer;
 SELECT * from borrow;
