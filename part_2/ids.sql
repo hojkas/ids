@@ -54,8 +54,7 @@ create table person
 	constraint zip_check
 		check (regexp_like(zip_code, '^\d{5}$')),
 	constraint person_is_something
-        check (is_customer = 1 OR is_employee = 1),
-
+        check (is_customer = 1 OR is_employee = 1)
 );
 
 create table borrow
@@ -63,21 +62,26 @@ create table borrow
     borrow_id int generated as identity
         constraint borrow_pk
             primary key,
+    copy_id int not null,
     borrow_date date not null,
     return_date date,
     price float,
     customer_id int not null, --borrowed title
     employee_id int not null, -- checked it out
+    constraint copy_id_fk
+        foreign key (copy_id) references copy(copy_id),
     constraint customer_id_fk
         foreign key (customer_id) references person(person_id),
     constraint employee_id_fk
         foreign key (employee_id) references person(person_id)
-    --TODO constraint user is user and empl is empl
+    /*
+     Kvuli omezenym moznostem SQL na generalizaci je z tohoto
+     mista obtizne overit, zda dane id nalezi uzivateli. Toto overeni
+     bychom nechali na aplikaci, ktera nad timto pracuje.
+     Vyuzila by k tomu priznaky is_employee a is_customer
+     v tabulce "person".
+     */
 );
-
--- dodatecna omezeni
-
-
 
 -- INSERT
 -- naplneni tabulek vzorovymi daty
@@ -97,7 +101,7 @@ values(1);
 insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
 values ('Jiri', 'Novak', 58, 'Netinska', 'Brno', 58000, 1, 0);
 insert into person(first_name, last_name, house_number, street, town, zip_code, is_employee, is_customer)
-values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110, 0, 0);
+values ('Eva', 'Novotna', 240, 'Brnenska', 'Boskovice', 54110, 0, 1);
 
 
 -- kontroni vypisy, TODO vymazat
