@@ -231,8 +231,11 @@ join copy on title.title_id = copy.title_id;
 
 
 /* Dotaz vyuzivajici spojeni dvou tabulek #2
-   TODO Denis
+    Dotaz vypíše všechny výpůjčene kopie, jejich jméno, žánrové zařazení, datum výpůjčky a průměrnou cenu
    */
+SELECT title.title_id, borrow.copy_id, title.name, title.genre, borrow.borrow_date, title.price_per_day
+from borrow
+join title on title.title_id = borrow.copy_id;
 
 /* Dotaz vyuzivajici spojeni tri tabulek
    Dotaz vypíše title_id, copy_id z výpůjčky a jméno zákazníka, který jsi ji vypůjčil, i jméno
@@ -252,10 +255,11 @@ from title
 group by title.genre;
 
 /* Dotaz s klauzulí GROUP BY a agregacni funkci #2
-   TODO denis
-   napr. kolik vypujcek udelal jeden employee?
-   kolikrat uz byl vypujcent nejaky titul?
+    Dotaz vypíše počet výpůjček pro danou kopii a průměrnou cenu zapůjčení dané kopie
    */
+SELECT borrow.copy_id ,COUNT(borrow.copy_id), AVG(borrow.price)
+ from borrow
+group by borrow.copy_id;
 
 /* Dotaz obsahující predikát EXISTS
     Dotaz vypíše z databáze id a jméno aktivních zaměstnanců (např. kvůli účelům bonusů),
