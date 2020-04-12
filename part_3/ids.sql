@@ -255,7 +255,8 @@ from title
 group by title.genre;
 
 /* Dotaz s klauzulí GROUP BY a agregacni funkci #2
-    Dotaz vypíše počet výpůjček pro danou kopii a průměrnou cenu zapůjčení dané kopie
+    Dotaz vypíše počet výpůjček pro danou kopii a kolik v průměru zápůjčka stála (null pokud ještě nebyla
+   žádná zápůjčka daného titulu zaplacena)
    */
 SELECT borrow.copy_id ,COUNT(borrow.copy_id), AVG(borrow.price)
  from borrow
