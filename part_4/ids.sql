@@ -221,6 +221,8 @@ insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_
 values(9,9, TO_DATE('15/12/2020', 'DD/MM/YYYY'), TO_DATE('18/12/2020', 'DD/MM/YYYY'),75, 10, 3);
 insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
 values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/YYYY'),  30, 4, 2);
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(12,12, TO_DATE('23/12/2020', 'DD/MM/YYYY'), NULL, NULL, 5, 1);
 
 -- kontroni vypisy pro prvni cast
 -- treti cast vymazana, lze najit v predchozich ukolech
@@ -237,22 +239,40 @@ SELECT * from borrow;
 -- ===========================================================
 
 -- PROCEDUREs
-create or replace procedure count_free_copies
+-- Procedura #1
+-- Spočítá kolik videopůjčovna vlastní kopií (kazet), kolik z nich je
+-- je zapůjčených, kolik volných a kolik procent kopií je zapůjčených
+-- (např. jako přehledný indikátor, jak je prodejna vytížená a kolik
+-- svého potenciálu může zákazníkům právě nabídnout)
+-- Obsahuje ošetření (exception) dělení nulou.
+create or replace procedure count_copies_state
 as
     free_copies number;
+    borrowed_copies number;
     total_copies number;
+    percentage_borrowed number;
 begin
     select count(*) into total_copies from copy;
-    DBMS_OUTPUT.put_line('Total of ' || total_copies);
-    
-    /*
+    select count(*) into borrowed_copies from borrow where borrow.return_date is NULL;
+    free_copies := total_copies - borrowed_copies;
+    percentage_borrowed := 100 * borrowed_copies / total_copies;
+
+    DBMS_OUTPUT.put_line('Shop has total of ' || total_copies);
+    DBMS_OUTPUT.put_line('Borrowed: ' || borrowed_copies);
+    DBMS_OUTPUT.put_line('Free: ' || free_copies);
+    DBMS_OUTPUT.put_line('Percentage borrowed: ' || percentage_borrowed || '%');
+
     exception when zero_divide then
     begin
-
+        DBMS_OUTPUT.put_line('Shop has total of ' || total_copies);
+        DBMS_OUTPUT.put_line('Borrowed: ' || borrowed_copies);
+        DBMS_OUTPUT.put_line('Free: ' || free_copies);
+        DBMS_OUTPUT.put_line('Percentage borrowed: 0%');
     end;
 end;
 
-begin count_free_copies(); end;
+-- Spuštění první procedury, vypíše aktuální stav kopií
+begin count_copies_state(); end;
 
 -- predani prav pro druheho clena tymu
 grant all on title to xlebod00;
