@@ -207,9 +207,8 @@ values(9,9, TO_DATE('15/12/2020', 'DD/MM/YYYY'), TO_DATE('18/12/2020', 'DD/MM/YY
 insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
 values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/YYYY'),  30, 4, 2);
 
-
-
 -- kontroni vypisy pro prvni cast
+-- treti cast vymazana, lze najit v predchozich ukolech
 /*
 SELECT * from title;
 SELECT * from copy;
@@ -218,76 +217,14 @@ SELECT * from person;
 SELECT * from borrow;
 */
 
--- 3. CAST --
--- SELECT DOTAZY
+-- 4. cast
+-- predani prav pro druheho clena tymu
+grant all on title to xlebod00;
+grant all on copy to xlebod00;
+grant all on genre to xlebod00;
+grant all on person to xlebod00;
+grant all on borrow to xlebod00;
 
-/* Dotaz vyuzivajici spojeni dvou tabulek #1
-    Vypíše všechny fyzické kopie ve videopůjčovně (krom id jejich jméno, žánrové zařazení a cenu)
-    (Nezobrazí SAW, které je pouze jako titul v databázi, ale nemá fyzickou kopii)
-   */
-SELECT title.title_id, copy.copy_id, title.name, title.genre, title.price_per_day
-from title
-join copy on title.title_id = copy.title_id;
-
-
-/* Dotaz vyuzivajici spojeni dvou tabulek #2
-    Dotaz vypíše všechny výpůjčene kopie, jejich jméno, žánrové zařazení, datum výpůjčky a průměrnou cenu
-   */
-SELECT title.title_id, borrow.copy_id, title.name, title.genre, borrow.borrow_date, title.price_per_day
-from borrow
-join title on title.title_id = borrow.copy_id;
-
-/* Dotaz vyuzivajici spojeni tri tabulek
-   Dotaz vypíše title_id, copy_id z výpůjčky a jméno zákazníka, který jsi ji vypůjčil, i jméno
-   zaměstnance, který výpůjčku zrealizoval (dvakrát navázána tabulka person, pokaždé kvůli jinému ID)
-   */
-SELECT borrow.title_id, borrow.copy_id, c.first_name as customer_name, c.last_name as customer_surname,
-       e.first_name as employee_name, e.last_name employee_surname
-from borrow
-join person c on borrow.customer_id = c.person_id
-join person e on borrow.employee_id = e.person_id;
-
-/* Dotaz s klauzulí GROUP BY a agregacni funkci #1
-   Dotaz vypíše počet titulů a průměrnou cenu zapůjčení v daném žánru
-   */
-SELECT title.genre, COUNT(title.title_id), AVG(title.price_per_day)
-from title
-group by title.genre;
-
-/* Dotaz s klauzulí GROUP BY a agregacni funkci #2
-    Dotaz vypíše počet výpůjček pro danou kopii a kolik v průměru zápůjčka stála (null pokud ještě nebyla
-   žádná zápůjčka daného titulu zaplacena)
-   */
-SELECT borrow.copy_id ,COUNT(borrow.copy_id), AVG(borrow.price)
- from borrow
-group by borrow.copy_id;
-
-/* Dotaz obsahující predikát EXISTS
-    Dotaz vypíše z databáze id a jméno aktivních zaměstnanců (např. kvůli účelům bonusů),
-    tj. pouze těch, kteří již zprostředkovali nějakou výpůjčku.
- */
-SELECT person.person_id as employee_id, person.first_name, person.last_name
-from person
-where person.is_employee = 1
-and exists(
-    SELECT borrow.borrow_id
-    from borrow
-    where borrow.employee_id = person.person_id
-    );
-
-/* Dotaz s predikátem IN s vnořeným selectem
-    Dotaz vypíše pouze ty žánry, od kterých existují minimálně dvě fyzické kopie kazet.
-    (Vnitřní dotaz SELECT sloučí pomocí group by kopie podle žánrů a nechá pouze ty záznamy, kde je jejich
-    počet větší než 1 (bez).
-    Dotaz může sloužit například pro určení, kterého žánru už existuje X kopií a tudíž by bylo vhodné pro něj
-    mít v prodejně samostatný regál. V takovém případě by samozřejmně dolní limit byl větší.)
- */
-SELECT genre.name
-from genre
-where genre.name in(
-    SELECT title.genre
-    from copy
-    join title on title.title_id = copy.title_id
-    group by title.genre
-    having COUNT(copy.copy_id) > 1
-    );
+-- TODO doplnit
+-- grant execute on executable_stuff to xlebod00;
+-- grant all on materialized_view_name to xlebod00;
