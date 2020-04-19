@@ -83,6 +83,21 @@ create table borrow
      */
 );
 
+-- ===============
+-- 4.cast TRIGGERY
+-- ===============
+
+-- trigger #1
+/*
+create or replace trigger check_borrow_person
+    before insert on borrow
+    for each row
+begin
+
+end;
+*/
+-- trigger #2
+
 -- INSERT
 -- naplneni tabulek vzorovymi daty
 
@@ -217,7 +232,28 @@ SELECT * from person;
 SELECT * from borrow;
 */
 
--- 4. cast
+-- ===========================================================
+--                          4. cast
+-- ===========================================================
+
+-- PROCEDUREs
+create or replace procedure count_free_copies
+as
+    free_copies number;
+    total_copies number;
+begin
+    select count(*) into total_copies from copy;
+    DBMS_OUTPUT.put_line('Total of ' || total_copies);
+    
+    /*
+    exception when zero_divide then
+    begin
+
+    end;
+end;
+
+begin count_free_copies(); end;
+
 -- predani prav pro druheho clena tymu
 grant all on title to xlebod00;
 grant all on copy to xlebod00;
