@@ -74,13 +74,6 @@ create table borrow
         foreign key (customer_id) references person(person_id),
     constraint employee_id_fk
         foreign key (employee_id) references person(person_id)
-    /*
-     Kvuli omezenym moznostem SQL na generalizaci je z tohoto
-     mista obtizne overit, zda dane id nalezi uzivateli. Toto overeni
-     bychom nechali na aplikaci, ktera nad timto pracuje.
-     Vyuzila by k tomu priznaky is_employee a is_customer
-     v tabulce "person".
-     */
 );
 
 -- ===============
@@ -88,15 +81,48 @@ create table borrow
 -- ===============
 
 -- trigger #1
-/*
-create or replace trigger check_borrow_person
+-- U vytvoření záznamu borrow musí být uvedena dvě id, jedno zákazníka, jedno zaměstance.
+-- Trigger ověří, zda každé z nich skutečně patří odpovídající osobě (tj. že employee_id patří osobě,
+-- která je zaměstnancem, a customer_id osobě, která je vedena jako zákazník)
+create or replace trigger check_borrow_personel
     before insert on borrow
     for each row
+declare
+    is_employee person.is_employee%type;
+    is_customer person.is_customer%type;
 begin
+    select person.is_employee
+    into is_employee
+    from person where person.person_id = :new.employee_id;
+
+    select person.is_customer
+    into is_customer
+    from person where person.person_id = :new.customer_id;
+
+    if
+        (is_employee = 0)
+    then
+        raise_application_error(-20250, 'Not employee id, couldnt lend copy to customer');
+    end if;
+
+    if
+        (is_customer = 0)
+    then
+        raise_application_error(-20250, 'Not customer id, couldnt lend copy to someone whos not customer');
+    end if;
 
 end;
-*/
+
 -- trigger #2
+-- TODO Denis
+-- vytvoření jednoho netriviálního databázového triggeru vč. jeho předvedení (to můžeš buď tu nebo až pod inserty,
+-- podle toho, na co to bude trigger), z toho právě jeden trigger pro automatické generování hodnot primárního klíče
+-- nějaké tabulky ze sekvence (např. pokud bude při vkládání záznamů do dané tabulky hodnota primárního klíče
+-- nedefinována, tj. NULL)
+-- pravděpodobně budeš pro toto muset změnit jak vypadá table (bez auto generovaného klíče) a pozměnit tím pádem i
+-- některé inserty změnit k tomu
+
+
 
 -- INSERT
 -- naplneni tabulek vzorovymi daty
@@ -238,6 +264,13 @@ SELECT * from borrow;
 --                          4. cast
 -- ===========================================================
 
+-- TRIGGERs demonstrace
+-- Trigger #1
+-- Insert do tabulky borrow, který skončí chybou. Je to kvůli tomu, že ID 1 je osoba
+-- vystupující pouze jako zaměstnanec, nemůže být uvedena jako zákazník (customer_id) u výpůjčky
+insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
+values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/YYYY'),  30, 1, 2);
+
 -- PROCEDUREs
 -- Procedura #1
 -- Spočítá kolik videopůjčovna vlastní kopií (kazet), kolik z nich je
@@ -274,6 +307,16 @@ end;
 -- Spuštění první procedury, vypíše aktuální stav kopií
 begin count_copies_state(); end;
 
+-- Procedura #2
+-- využívající kurzor a proměnnou s datovým typem odkazujícím se na řádek či typ sloupce tabulky
+-- Procedura vyžaduje jako parametr název žánru. Projde veškeré uzavřené zápůjčky a spočítá
+-- kolik procent výdělků patří zadanému žánru. (Může být zajímavé např. pro rozhodování kolekci kterého
+-- žánru se vyplatí rozšířit, protože je populární. V praxi by bylo zajímavé implementovat rozšířenou verzi
+-- s vytvářením této statistiky pro určité časové období)
+create or replace procedure as
+
+
+
 -- predani prav pro druheho clena tymu
 grant all on title to xlebod00;
 grant all on copy to xlebod00;
@@ -282,5 +325,6 @@ grant all on person to xlebod00;
 grant all on borrow to xlebod00;
 
 -- TODO doplnit
+grant execute on count_copies_state to xlebod00;
 -- grant execute on executable_stuff to xlebod00;
 -- grant all on materialized_view_name to xlebod00;
