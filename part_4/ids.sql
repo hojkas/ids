@@ -124,7 +124,9 @@ end;
 
 
 
--- INSERT
+-- ===================================
+--   2. cast INSERT
+-- ===================================
 -- naplneni tabulek vzorovymi daty
 
 insert into genre (name)
@@ -345,16 +347,60 @@ begin
     end;
 end;
 
+-- Demonstrace procedury #2, vypíše informace o profitu pro žánr komedie
 begin count_genre_profit('comedy'); end;
 
--- predani prav pro druheho clena tymu
+-- EXPLAIN plan
+-- dotaz prohledá kopie seskupené podle žánru a vybere pouze ten žánr, kde existuje
+-- více než 1 kopie (kazeta)
+explain plan for
+SELECT genre.name
+from genre
+where genre.name in(
+    SELECT title.genre
+    from copy
+    join title on title.title_id = copy.title_id
+    group by title.genre
+    having COUNT(copy.copy_id) > 1
+    );
+
+-- Demonstrace Explain plan bez optimalizace indexem
+-- Součástí je vyhledání kopie daného titulu (kvůli příslušnosti k žánru), kde
+-- kvůli join těchto dvou tabulek probíhají další operace. Toto by šlo zoptimalizovat zavedením
+-- indexu.
+select * from table (DBMS_XPLAN.DISPLAY());
+
+-- Vytvoření indexu u kopie na titul (místo prohledávání tabulky a nalezení titulu s daným id
+-- je zde tak index).
+create index title_copy on copy(title_id);
+
+-- Opětovné zavolání explain plan nad stejným dotazem.
+explain plan for
+SELECT genre.name
+from genre
+where genre.name in(
+    SELECT title.genre
+    from copy
+    join title on title.title_id = copy.title_id
+    group by title.genre
+    having COUNT(copy.copy_id) > 1
+    );
+
+-- Demonstrace výsledku. Je použit index vytvořený výše, díky kterému se počet operací zmenšil na 7 (z 9).
+select * from table (DBMS_XPLAN.DISPLAY());
+
+-- TODO Denis
+-- Vytvořit alespoň jeden materializovaný pohled patřící druhému členu týmu (aka dole v todo dáš řádek na grant práva afaik)
+-- a používající tabulky definované prvním členem týmu
+
+-- Předání práv druhému členu týmu
 grant all on title to xlebod00;
 grant all on copy to xlebod00;
 grant all on genre to xlebod00;
 grant all on person to xlebod00;
 grant all on borrow to xlebod00;
 
--- TODO doplnit
 grant execute on count_copies_state to xlebod00;
--- grant execute on executable_stuff to xlebod00;
+grant execute on count_genre_profit to xlebod00;
+-- TODO doplnit
 -- grant all on materialized_view_name to xlebod00;
