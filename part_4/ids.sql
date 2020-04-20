@@ -309,13 +309,43 @@ begin count_copies_state(); end;
 
 -- Procedura #2
 -- využívající kurzor a proměnnou s datovým typem odkazujícím se na řádek či typ sloupce tabulky
--- Procedura vyžaduje jako parametr název žánru. Projde veškeré uzavřené zápůjčky a spočítá
--- kolik procent výdělků patří zadanému žánru. (Může být zajímavé např. pro rozhodování kolekci kterého
--- žánru se vyplatí rozšířit, protože je populární. V praxi by bylo zajímavé implementovat rozšířenou verzi
--- s vytvářením této statistiky pro určité časové období)
-create or replace procedure as
+-- Procedura vyžaduje jako parametr název žánru. Projde veškeré uzavřené zápůjčky a spočítá celkové výdělky,
+-- výdělky titlů v tomto žánru a kolik procent výdělků patří zadanému žánru.
+create or replace procedure count_genre_profit (desired_genre_name in varchar) as
+begin
+    declare cursor cursor_borrow is
+        SELECT borrow.price, title.genre
+        from borrow
+        join title on borrow.title_id = title.title_id
+        where borrow.price is not NULL;
+    g_price borrow.price%TYPE;
+    g_name title.genre%TYPE;
+    total_price number;
+    desired_price number;
+    percent_profit number;
+    begin
+        total_price := 0;
+        desired_price := 0;
+        open cursor_borrow;
+        loop
+            fetch cursor_borrow into g_price, g_name;
+            exit when cursor_borrow%notfound;
+            if g_name = desired_genre_name then
+                desired_price := desired_price + g_price;
+            end if;
+            total_price := total_price + g_price;
+        end loop;
+        close cursor_borrow;
+        dbms_output.put_line('Total profit: ' || total_price);
+        dbms_output.put_line(desired_genre_name || ' profit: ' || desired_price);
+        if total_price != 0 then
+            percent_profit := 100 * desired_price / total_price;
+            dbms_output.put_line('Relative genre profit: (in % of total profit) ' || percent_profit);
+        end if;
+    end;
+end;
 
-
+begin count_genre_profit('comedy'); end;
 
 -- predani prav pro druheho clena tymu
 grant all on title to xlebod00;
