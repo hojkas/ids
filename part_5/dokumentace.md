@@ -24,9 +24,9 @@
 
 # Implementace <a name="implementace"></a>
 
-Specializace entitní množiny Osoba množinami Zákazník a Pracovník je naimplementována pomocí jedné tabulky s položkami `is_employee` a `is_customer`, které určují jakou roli je Osoba schopná zastávat. Všechny ostatní entitní množiny z ER diagramu byly převedeny do samostatných tabulek beze změny.
+Specializace entitní množiny Osoba množinami Zákazník a Pracovník je naimplementována pomocí jedné tabulky s položkami `is_employee` a `is_customer`, které určují, jakou roli je Osoba schopná zastávat. Všechny ostatní entitní množiny z ERD byly převedeny do samostatných tabulek podle diagramu beze změny.
 
-Pro spustitelné procedury, materializovaný pohled i všechny tabulky jsou předány práva také druhému členovi týmu.
+Skript vytvoří tabulky, nahraje do nich demonstrační data a vytvoří žádané procedury, triggery a další požadované struktury. Pro spustitelné procedury, materializovaný pohled i všechny tabulky jsou předány práva také druhému členovi týmu.
 
 ## Triggery <a name="triggery"></a>
 
@@ -36,7 +36,15 @@ TODO Denis: Druhý trigger
 
 ## Procedury <a name="procs"></a>
 
+Procedura `count_copies_state` slouží k výpisu stavu všech kopií. Zjistí, kolik kopií (kazet) obchod skutečně vlastní, kolik je jich zapůjčených a volných, a vypočítá procentuální podíl zapůjčených kopií. Na spočítání vypůjčených kopií využívá select všech výpůjček z tabulky `borrow`, které mají v sloupci data vrácení hodnotu Null. Protože při počítání procent zapůjčených kopií probíhá dělení proměnnou, která může být nulová, obsahuje procedura ošetření výjimky dělení nulou.
+
+Procedura `count_genre_profit` má za úkol spočítat profity zadaného žánru a porovnat je s celkovými. Využívá k tomu kurzor, který prochází z tabulky `borrow` řádky, kde byla již vrácena kazeta, a vrací cenu zápůjčky a žánr vypůjčené kopie. Tento kurzor se volá ve smyčce, dokud neprojde všechny odpovídající řádky. Informace z něj se použijí pro uložení hodnot do patřičných proměnných na základě shody či neshody žánru kopie s hledaným žánrem. Po skončení smyčky je z proměnných vypočítána statistika.
+
 ## Explain plan a index <a name="exp"></a>
+
+Na demonstraci explain plan používáme dotaz z třetí úlohy. Jedná se o select nad tabulkou `genre`, který vybere pouze ty žánry, ke kterým existuje více než 1 kopie. Tyto žánry vyhledává zanořeným selectem nad tabulkou `copy`, který sjednotí kopie pomocí group by a vybere pouze ty s agregační funkcí count větší jak jedna. Protože kopie samotná nemá informaci o žánru, obsahuje dotaz navíc join s tabulkou `title` pro nalezení žánru k jednotlivým kopiím.
+
+Právě ve spojení tabulek `copy` a `title` pro daný select vidíme možnost optimalizace indexem. V původním explain plan můžeme vidět vyhledání titulu ke každé kopii. Vytvořili jsme proto index na `copy` vázající každou kopii k odpovídajícímu `title_id`. Díky tomuto indexu odpadne nutnost opakovaného prohledávání tabulky title a celý dotaz se urychlí.
 
 ## Materializovaný pohled <a name="mat"></a>
 
