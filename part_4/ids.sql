@@ -386,7 +386,7 @@ where genre.name in(
     having COUNT(copy.copy_id) > 1
     );
 
--- Demonstrace výsledku. Je použit index vytvořený výše, díky kterému se počet operací zmenšil na 7 (z 9).
+-- Demonstrace výsledku. Je použit index vytvořený výše, díky kterému se počet operací zmenšil na 8 (z 10).
 select * from table (DBMS_XPLAN.DISPLAY());
 
 -- TODO Denis
