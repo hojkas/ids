@@ -8,6 +8,9 @@ drop table copy cascade constraints;
 drop table borrow cascade constraints;
 drop table genre cascade constraints;
 drop table person cascade constraints;
+drop sequence borrow_id_sequence;
+drop materialized view customer_borrow_count;
+
 
 -- create
 create table genre
@@ -40,8 +43,8 @@ create table copy
 create table person
 (
 	person_id int generated as identity
-		constraint person_pk
-			primary key,
+        constraint person_pk
+            primary key,
 	first_name varchar(50) not null,
 	last_name varchar(50) not null,
 	house_number int not null,
@@ -58,9 +61,7 @@ create table person
 
 create table borrow
 (
-    borrow_id int generated as identity
-        constraint borrow_pk
-            primary key,
+    borrow_id int default null primary key,
     title_id int not null,
     copy_id int not null,
     borrow_date date not null,
@@ -102,25 +103,61 @@ begin
     if
         (is_employee = 0)
     then
-        raise_application_error(-20250, 'Not employee id, couldnt lend copy to customer');
+        raise_application_error(-20250, 'Not employee id, could not lend copy to customer');
     end if;
 
     if
         (is_customer = 0)
     then
-        raise_application_error(-20250, 'Not customer id, couldnt lend copy to someone whos not customer');
+        raise_application_error(-20250, 'Not customer id, could not lend copy to someone who is not customer');
     end if;
 
 end;
 
 -- trigger #2
--- TODO Denis
--- vytvoření jednoho netriviálního databázového triggeru vč. jeho předvedení (to můžeš buď tu nebo až pod inserty,
--- podle toho, na co to bude trigger), z toho právě jeden trigger pro automatické generování hodnot primárního klíče
--- nějaké tabulky ze sekvence (např. pokud bude při vkládání záznamů do dané tabulky hodnota primárního klíče
--- nedefinována, tj. NULL)
--- pravděpodobně budeš pro toto muset změnit jak vypadá table (bez auto generovaného klíče) a pozměnit tím pádem i
--- některé inserty změnit k tomu
+
+create sequence borrow_id_sequence;
+
+create or replace trigger increment_borrow_id
+    before insert on borrow
+    for each row
+begin
+    if :new.borrow_id is NULL then
+        :new.borrow_id := borrow_id_sequence.nextval;
+    end if;
+end;
+
+-- trigger #3
+
+create or replace trigger count_borrow_cost
+    before update on borrow
+    for each row
+    when ( new.return_date is not NULL and old.return_date is NULL)
+declare
+    b_date borrow.borrow_date%type;
+    r_date borrow.return_date%type;
+    ppd title.price_per_day%type;
+begin
+    select title.price_per_day into ppd
+    from title where title.title_id = :new.title_id;
+
+    b_date := :new.borrow_date;
+    r_date := :new.return_date;
+
+    if (r_date - b_date) < 0 then
+        raise_application_error(-20250, 'Date of return is earlier than the date of borrowing the book.');
+    end if;
+
+    if :new.price is NULL then
+        :new.price := (r_date - b_date) * ppd;
+    else
+        raise_application_error(-20250, 'Price is set with no return date.');
+
+    end if;
+
+end;
+
+
 
 
 
@@ -252,6 +289,8 @@ values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/
 insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
 values(12,12, TO_DATE('23/12/2020', 'DD/MM/YYYY'), NULL, NULL, 5, 1);
 
+
+
 -- kontroni vypisy pro prvni cast
 -- treti cast vymazana, lze najit v predchozich ukolech
 /*
@@ -270,8 +309,25 @@ SELECT * from borrow;
 -- Trigger #1
 -- Insert do tabulky borrow, který skončí chybou. Je to kvůli tomu, že ID 1 je osoba
 -- vystupující pouze jako zaměstnanec, nemůže být uvedena jako zákazník (customer_id) u výpůjčky
+
 insert into borrow(title_id, copy_id, borrow_date, return_date, price, customer_id, employee_id)
 values(11,11, TO_DATE('18/12/2020', 'DD/MM/YYYY'), TO_DATE('19/12/2020', 'DD/MM/YYYY'),  30, 1, 2);
+
+
+-- Trigger #2
+-- Automaticky incrementuje PK vypujciek
+
+-- Trigger #3
+-- Pri update polozky v tabulce borrow, který nastavi predtym nenastaveni datum vraceni,
+-- sa automaticky vypocita cena na zaklade dlzky vypujcky a ceny daneho titulu
+
+-- BEFORE RETURN
+select * from borrow;
+
+UPDATE borrow set return_date = TO_DATE('24/12/2020', 'DD/MM/YYYY') where borrow_date = TO_DATE('23/12/2020', 'DD/MM/YYYY');
+
+-- AFTER RETURN
+select * from borrow;
 
 -- PROCEDUREs
 -- Procedura #1
@@ -389,9 +445,25 @@ where genre.name in(
 -- Demonstrace výsledku. Je použit index vytvořený výše, díky kterému se počet operací zmenšil na 8 (z 10).
 select * from table (DBMS_XPLAN.DISPLAY());
 
--- TODO Denis
--- Vytvořit alespoň jeden materializovaný pohled patřící druhému členu týmu (aka dole v todo dáš řádek na grant práva afaik)
--- a používající tabulky definované prvním členem týmu
+
+-- Materialized View
+-- Obsahuje suhrn vsetkych registrovanych osob a pocet realizovanych vypujcek
+-- Da sa vyuzit pre udelovanie bonusov pre vernych zakaznikov
+
+create materialized view customer_borrow_count as
+select
+    person.person_id,
+    person.first_name,
+    person.last_name,
+    count( borrow.customer_id ) as borrow_count
+from person
+left join borrow on borrow.customer_id = person.person_id
+where person.is_customer = 1
+group by person.person_id, person.first_name, person.last_name;
+
+-- Materialized view
+select * from customer_borrow_count;
+
 
 -- Předání práv druhému členu týmu
 grant all on title to xlebod00;
@@ -402,5 +474,4 @@ grant all on borrow to xlebod00;
 
 grant execute on count_copies_state to xlebod00;
 grant execute on count_genre_profit to xlebod00;
--- TODO doplnit
--- grant all on materialized_view_name to xlebod00;
+grant all on customer_borrow_count to xlebod00;
