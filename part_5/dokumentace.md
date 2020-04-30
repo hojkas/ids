@@ -32,7 +32,9 @@ Skript vytvoří tabulky, nahraje do nich demonstrační data a vytvoří žáda
 
 Trigger `check_borrow_personel` zajišťuje integritu dat v tabulce `borrow`. U každého záznamu do této tabulky se uvádí dvě ID osoby, první zákazníka půjčujícího si kopii, druhé pracovníka, který výpůjčku zpracovává. Aby nedošlo k situaci, kdy je zadáno ID osoby s nedostatečným oprávněním na danou akci, vyhledá se ID osoby uvedené jako zákazník a zkontroluje se, zda se jedná skutečně o zákazníka. Stejná akce je provedena pro ID zaměstnance. V případě nekonzistence je vyvolána chyba.
 
-TODO Denis: Druhý trigger
+Nasledující trigger `increment_borrow_id` se využívá pro ikrementaci primárního klíče elementů v tabulce `borrow`. Tento trigger je volán při každém vložení do tabulky. 
+
+Poslední trigger `count_borrow_cost` spáji obě funkcionality předchodzích triggeru do jednoho. Kokrétněji, nastavení hodnoty sloupce a načtení hodnot z dvou různých tabulek. Tenhle trigger je využíván při updatu tabulky `borrow`, konkkrétne když je položka `return_date` přestavena z hodnoty NULL na konktrétní datum. V tomhle případe je načtena hodnota `price_per_day` pro daným titul z tabulky `title` a je vynásobena rozdílem dnů mezi vypůjčením a vrácením titulu, pro získání konečné ceny výpujčky. Tato hodnota je pak vložena do sloupce `price` v tabulce `borrow` pro respektivní výpujčku.  
 
 ## Procedury <a name="procs"></a>
 
@@ -48,4 +50,4 @@ Právě ve spojení tabulek `copy` a `title` pro daný select vidíme možnost o
 
 ## Materializovaný pohled <a name="mat"></a>
 
-TODO Denis
+Pro demonstraci materializovaného pohledu sme vytvořili pohled `customer_borrow_count`. Tento pohled spojuje informace z tabulek `borrow` a `person` přičemž tyto informace používa na vytvoření sourhnu všech zákazníku a zobrazení počtu výpůjček, které respektivní uživatelé uskutečnili. Tento pohled by se dal využít například na udelovaní věrnostnických slev a sledování nejaktivnějších zákazníků. 
